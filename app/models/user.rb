@@ -19,6 +19,11 @@ class User < ApplicationRecord
     nil
   end
 
+  def approved_relationship
+    Relationship.where("sender_id = ? OR recipient_id = ?", id, id).where(confirmed: true)
+  end
+
+
   # user1 = User.create(
   #   name: "Dani"
   # )

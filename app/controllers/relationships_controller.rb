@@ -1,5 +1,7 @@
 class RelationshipsController < ApplicationController
 
+  before_action :authenticate_user
+
    
   # write method where if user requests a relationship, a relationship_id is created for that user, and a sender_id is created for that user, and a recipient_id is created for the user that is getting the request. Once the recipient has confirmed the relationship, both users are saved to that relationship_id. If the recipient denies the request, the relationship_id, sender_id, and recipient_id are all destroyed. 
 
@@ -15,7 +17,7 @@ class RelationshipsController < ApplicationController
     end
   end
 
-  
+
 
   def update
     # User may only change the confirmed status, and only of the friendship request they are a recipient

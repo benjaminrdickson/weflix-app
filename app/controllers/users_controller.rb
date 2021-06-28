@@ -1,5 +1,8 @@
 class UsersController < ApplicationController
 
+  before_action :authenticate_user
+
+
   def create
     user = User.new(
       name: params[:name],
@@ -40,6 +43,7 @@ class UsersController < ApplicationController
   def destroy
     user = User.find(params[:id])
     user.destroy
+    relationship.destroy
     render json: {message: "User destroyed"}
   end 
 
