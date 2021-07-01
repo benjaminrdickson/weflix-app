@@ -24,24 +24,13 @@ class User < ApplicationRecord
   end
 
 
-  # user1 = User.create(
-  #   name: "Dani"
-  # )
+  
 
-  # user2 = User.create(
-  #   name: "Ryan"
-  # )
-
-  # relationship = Relationship.create(
-  #   sender_id: 1
-  #   recipient_id: 2
-  #   confirmation: true
-  # )
-
-  # has_one :relationship
-  # has_one :partner 
+  has_one :relationship
+  has_one :partner 
 
   has_many :likes 
+  has_many :favorites
 
 
 end

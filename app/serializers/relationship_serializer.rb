@@ -1,3 +1,3 @@
 class RelationshipSerializer < ActiveModel::Serializer
-  attributes :id
+  attributes :id, :sender, :recipient
 end

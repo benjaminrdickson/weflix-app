@@ -21,13 +21,13 @@ Rails.application.routes.draw do
 
   # User routes
 
-  post "/user", controller: "user", action: "create"
+  post "/users", controller: "users", action: "create"
 
-  get "/user/:id", controller: "user", action: "show"
+  get "/users/:id", controller: "users", action: "show"
 
-  patch "/user/:id", controller: "user", action: "update"
+  patch "/users/:id", controller: "users", action: "update"
 
-  delete "/user/:id", controller: "user", action: "destroy"
+  delete "/users/:id", controller: "users", action: "destroy"
 
   # Authentication 
 
