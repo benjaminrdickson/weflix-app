@@ -1,5 +1,7 @@
 class FavoriteSerializer < ActiveModel::Serializer
-  attributes :id, :api_movie_id, :relationship_id
+  attributes :id, :relationship_id
 
-  # belongs_to :user
+  belongs_to :movie
+
+  
 end

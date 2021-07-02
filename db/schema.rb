@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_06_21_221840) do
+ActiveRecord::Schema.define(version: 2021_07_02_012517) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -32,7 +32,7 @@ ActiveRecord::Schema.define(version: 2021_06_21_221840) do
   create_table "relationships", force: :cascade do |t|
     t.integer "sender_id"
     t.integer "recipient_id"
-    t.boolean "confirmation"
+    t.boolean "confirmation", default: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end

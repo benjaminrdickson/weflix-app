@@ -7,11 +7,13 @@ class UsersController < ApplicationController
     user = User.new(
       name: params[:name],
       email: params[:email],
+      username: params[:username],
+      image_url: params[:image_url],
       password: params[:password],
       password_confirmation: params[:password_confirmation]
     )
     if user.save
-      render json: {message: "User succesfully created"}, status: :created
+      render json: user
     else 
       render json: {errors: user.errors.full_messages }, status: :bad_request
     end 
@@ -30,17 +32,17 @@ class UsersController < ApplicationController
     # if current_user.id = user.id
     #   if params[:password] && params[:password_confirmation]
     #   end 
-      user.name = params[:name] || user.name
-      user.email = params[:email] || user.email
-      user.username = params[:username] || user.username
-      user.image_url = params[:image_url] || user.image_url
-      user.password = params[:password] || user.password
-      user.password_confirmation = params[:password_confirmation] || user.password_confirmation
-      if user.save
-        render json: user
-      else 
-        render json: {errors: user.errors.full_messages }, status: :unprocessable_entity
-      end 
+    user.name = params[:name] || user.name
+    user.email = params[:email] || user.email
+    user.username = params[:username] || user.username
+    user.image_url = params[:image_url] || user.image_url
+    user.password = params[:password] || user.password
+    user.password_confirmation = params[:password_confirmation] || user.password_confirmation
+    if user.save
+      render json: user
+    else 
+      render json: {errors: user.errors.full_messages }, status: :unprocessable_entity
+    end 
     # end 
   end 
 

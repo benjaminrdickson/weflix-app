@@ -33,6 +33,10 @@ Rails.application.routes.draw do
 
   post "/sessions", controller: "sessions", action: "create"
 
+  # Movies
+
+  get "/movies/random", controller: "movies", action: "show"
+
 
 
 

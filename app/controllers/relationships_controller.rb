@@ -23,7 +23,7 @@ class RelationshipsController < ApplicationController
     # User may only change the confirmed status, and only of the friendship request they are a recipient
     relationship = Relationship.find(params[:id])
     if relationship.recipient == current_user
-      relationship.confirmed = params[:confirmed] || relationship.confirmed
+      relationship.confirmation = true
       if relationship.save
         render json: relationship
       else
@@ -42,7 +42,7 @@ class RelationshipsController < ApplicationController
   def destroy 
     relationship = Relationship.find(params[:id])
     relationship.destroy 
-    render json: {message: "Relationship successfully destroyed"}
+    render json: {message: "Relationship destroyed"}
   end 
 
 
