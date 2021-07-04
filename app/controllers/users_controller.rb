@@ -29,21 +29,21 @@ class UsersController < ApplicationController
 
   def update
     user = User.find(params[:id])
-    # if current_user.id = user.id
-    #   if params[:password] && params[:password_confirmation]
-    #   end 
-    user.name = params[:name] || user.name
-    user.email = params[:email] || user.email
-    user.username = params[:username] || user.username
-    user.image_url = params[:image_url] || user.image_url
-    user.password = params[:password] || user.password
-    user.password_confirmation = params[:password_confirmation] || user.password_confirmation
-    if user.save
-      render json: user
-    else 
-      render json: {errors: user.errors.full_messages }, status: :unprocessable_entity
+    if current_user.id == user.id
+      if params[:password] && params[:password_confirmation]
+        user.password = params[:password]
+        user.password_confirmation = params[:password_confirmation]
+      end 
+      user.name = params[:name] || user.name
+      user.email = params[:email] || user.email
+      user.username = params[:username] || user.username
+      user.image_url = params[:image_url] || user.image_url
+      if user.save
+        render json: user
+      else 
+        render json: {errors: user.errors.full_messages }, status: :unprocessable_entity
+      end 
     end 
-    # end 
   end 
 
 
