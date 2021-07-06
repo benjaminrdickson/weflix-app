@@ -6,7 +6,7 @@ class User < ApplicationRecord
 
 
   def relationship
-    Relationship.where(confirmation: true).find_by("sender_id = ? OR recipient_id = ? ", id, id )
+    Relationship.find_by("sender_id = ? OR recipient_id = ? ", id, id )
   end 
 
   def partner 

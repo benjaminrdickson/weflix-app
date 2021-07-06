@@ -3,6 +3,7 @@ class UserSerializer < ActiveModel::Serializer
 
   
   has_one :partner
+  has_one :relationship
 
 
 end
