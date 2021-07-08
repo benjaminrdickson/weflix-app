@@ -42,6 +42,7 @@ class RelationshipsController < ApplicationController
   def destroy 
     relationship = Relationship.find(params[:id])
     relationship.destroy 
+    relationship.favorites.destroy
     render json: {message: "Relationship destroyed"}
   end 
 
