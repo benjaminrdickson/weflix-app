@@ -34,9 +34,29 @@ class UsersController < ApplicationController
 
 
   def show
-    user = User.find_by({username: params[:username]})
-    render json: user
-  end 
+    user = User.find_by(username: params[:username])
+    return render json: { error: "User not found" }, status: :not_found unless user
+
+    rel = user.relationship
+    render json: {
+      id: user.id,
+      name: user.name,
+      username: user.username,
+      email: user.email,
+      image_url: user.image_url,
+      relationship: rel ? {
+        id: rel.id,
+        confirmed: rel.confirmation,
+        is_sender: rel.sender_id == user.id,
+        partner: user.partner ? {
+          id: user.partner.id,
+          name: user.partner.name,
+          username: user.partner.username,
+          image_url: user.partner.image_url
+        } : nil
+      } : nil
+    }
+  end
 
 
   def update

@@ -3,6 +3,10 @@ class FavoritesController < ApplicationController
   before_action :authenticate_user
 
   def index
+    unless current_user.relationship
+      render json: []
+      return
+    end
     region = params[:region].presence || "US"
     favorites = current_user.relationship.favorites
     render json: favorites.map { |f| build_favorite_json(f, region) }
