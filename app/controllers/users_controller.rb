@@ -3,6 +3,12 @@ class UsersController < ApplicationController
   before_action :authenticate_user, except: [:create, :show]
 
 
+  # def index
+  #   user = User.all
+  #   render json: user
+  # end 
+
+
   def create
     user = User.new(
       name: params[:name],
@@ -20,9 +26,15 @@ class UsersController < ApplicationController
   end 
 
 
+  # def username
+  #   user = User.find_by(params[:username])
+  #   render json: user
+  # end
+
+
 
   def show
-    user = User.find(params[:id])
+    user = User.find_by({username: params[:username]})
     render json: user
   end 
 
@@ -49,11 +61,13 @@ class UsersController < ApplicationController
 
 
   def destroy
-    user = User.find(params[:id])
+    user = User.find_by(username: params[:username])
+    user.relationship&.destroy
     user.destroy
-    relationship.destroy
     render json: {message: "User destroyed"}
-  end 
+  end
+
+
 
 
 end

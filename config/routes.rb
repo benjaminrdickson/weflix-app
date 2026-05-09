@@ -21,9 +21,13 @@ Rails.application.routes.draw do
 
   # User routes
 
+  # get "/users/:username", controller: "users", action: "index"
+
   post "/users", controller: "users", action: "create"
 
-  get "/users/:id", controller: "users", action: "show"
+  # get "/users/:username", controller: "users", action: "username"
+
+  get "/users/:username", controller: "users", action: "show"
 
   patch "/users/:id", controller: "users", action: "update"
 
