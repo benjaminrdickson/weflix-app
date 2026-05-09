@@ -1,63 +1,53 @@
 class FavoritesController < ApplicationController
 
+  before_action :authenticate_user
+
   def index
+    region = params[:region].presence || "US"
     favorites = current_user.relationship.favorites
-    render json: favorites
-    # favorite_movies_index = []
-    # favorites.each do |favorite| 
-    #   response = HTTP.get("https://api.themoviedb.org/3/movie/#{favorite.api_movie_id}?api_key=#{Rails.application.credentials.tmdb_api_key}")
-    #   favorite_movies_index << response.parse(:json)
-    # end
-    # render json: favorite_movies_index
-  end  
+    render json: favorites.map { |f| build_favorite_json(f, region) }
+  end
 
-
-    # render json: favorites 
-
-
-    # response = HTTP.get("https://api.themoviedb.org/3/discover/movie?api_key=#{Rails.application.credentials.tmdb_api_key}&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1&with_watch_monetization_types=flatrate")
-    # render json: response.parse(:json)["results"][0]["id"]
-    
-  
-
-  
-  # def movie
-  #   response = HTTP.get("https://api.themoviedb.org/3/movie/#{api_movie_id}?api_key=#{Rails.application.credentials.tmdb_api_key}")
-  #   movie = response.parse(:json)
-  #   return{
-  #     id: movie["id"],
-  #     original_title: movie["original_title"],
-  #     overview: movie["overview"],
-  #     poster_path: movie["poster_path"],
-  #   }
-  # end
-
-
-  
-
-  # "https://api.themoviedb.org/3/discover/movie?api_key=#{Rails.application.credentials.tmdb_api_key}&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1&with_watch_monetization_types=flatrate"
-
-
-  # def movie
-  #   response = HTTP.get("https://api.themoviedb.org/3/discover/movie?api_key=#{Rails.application.credentials.tmdb_api_key}&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1&with_watch_monetization_types=flatrate")
-  #   movie = response.parse(:json)
-  #   return{
-  #     id: movie["id"],
-  #     original_title: movie["original_title"],
-  #     overview: movie["overview"],
-  #     poster_path: movie["poster_path"],
-  #   }
-  # end
-
-
-
-
-
-  def destroy 
+  def destroy
     favorite = Favorite.find(params[:id])
-    favorite.destroy 
-    render json: {message: "Favorite successfully destroyed"}
-  end 
+    favorite.destroy
+    render json: { message: "Favorite successfully destroyed" }
+  end
 
+  private
+
+  def build_favorite_json(favorite, region)
+    content = favorite.details
+    providers = fetch_watch_providers(favorite.api_movie_id, favorite.content_type, region)
+    content.merge(
+      favorite_id: favorite.id,
+      watch_providers: providers
+    )
+  end
+
+  def fetch_watch_providers(api_id, content_type, region)
+    tmdb_type = content_type == "tv" ? "tv" : "movie"
+    api_key = Rails.application.credentials.tmdb_api_key
+    url = "https://api.themoviedb.org/3/#{tmdb_type}/#{api_id}/watch/providers?api_key=#{api_key}"
+    response = HTTP.get(url).parse(:json)
+    region_data = response.dig("results", region) || {}
+
+    {
+      flatrate: extract_providers(region_data["flatrate"]),
+      rent: extract_providers(region_data["rent"]),
+      buy: extract_providers(region_data["buy"])
+    }
+  end
+
+  def extract_providers(providers)
+    return [] if providers.nil?
+    providers.map do |p|
+      {
+        provider_id: p["provider_id"],
+        provider_name: p["provider_name"],
+        logo_path: p["logo_path"]
+      }
+    end
+  end
 
 end
