@@ -67,7 +67,28 @@ GEM
       zeitwerk (~> 2.3)
     addressable (2.7.0)
       public_suffix (>= 2.0.2, < 5.0)
+    aws-eventstream (1.4.0)
+    aws-partitions (1.1246.0)
+    aws-sdk-core (3.246.0)
+      aws-eventstream (~> 1, >= 1.3.0)
+      aws-partitions (~> 1, >= 1.992.0)
+      aws-sigv4 (~> 1.9)
+      base64
+      bigdecimal
+      jmespath (~> 1, >= 1.6.1)
+      logger
+    aws-sdk-kms (1.124.0)
+      aws-sdk-core (~> 3, >= 3.244.0)
+      aws-sigv4 (~> 1.5)
+    aws-sdk-s3 (1.221.0)
+      aws-sdk-core (~> 3, >= 3.244.0)
+      aws-sdk-kms (~> 1)
+      aws-sigv4 (~> 1.5)
+    aws-sigv4 (1.12.1)
+      aws-eventstream (~> 1, >= 1.0.2)
+    base64 (0.3.0)
     bcrypt (3.1.16)
+    bigdecimal (4.1.2)
     bootsnap (1.7.5)
       msgpack (~> 1.0)
     builder (3.2.4)
@@ -78,6 +99,10 @@ GEM
     crass (1.0.6)
     domain_name (0.5.20190701)
       unf (>= 0.0.5, < 1.0.0)
+    dotenv (3.2.0)
+    dotenv-rails (3.2.0)
+      dotenv (= 3.2.0)
+      railties (>= 6.1)
     erubi (1.10.0)
     ffi (1.15.3)
     ffi-compiler (1.0.1)
@@ -95,6 +120,7 @@ GEM
     http-form_data (2.3.0)
     i18n (1.8.10)
       concurrent-ruby (~> 1.0)
+    jmespath (1.6.2)
     jsonapi-renderer (0.2.2)
     jwt (2.2.3)
     listen (3.5.1)
@@ -103,6 +129,7 @@ GEM
     llhttp-ffi (0.0.1)
       ffi-compiler (~> 1.0)
       rake (~> 13.0)
+    logger (1.7.0)
     loofah (2.10.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
@@ -179,9 +206,11 @@ PLATFORMS
 
 DEPENDENCIES
   active_model_serializers
+  aws-sdk-s3
   bcrypt (~> 3.1.7)
   bootsnap (>= 1.4.4)
   byebug
+  dotenv-rails
   http
   jwt
   listen (~> 3.3)

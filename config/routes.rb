@@ -31,6 +31,8 @@ Rails.application.routes.draw do
 
   patch "/users/:id", controller: "users", action: "update"
 
+  post "/users/:id/profile_picture", controller: "users", action: "upload_profile_picture"
+
   delete "/users/:id", controller: "users", action: "destroy"
 
   # Authentication 

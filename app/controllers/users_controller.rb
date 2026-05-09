@@ -1,6 +1,7 @@
 class UsersController < ApplicationController
 
   before_action :authenticate_user, except: [:create, :show]
+  include Rails.application.routes.url_helpers
 
 
   # def index
@@ -43,7 +44,7 @@ class UsersController < ApplicationController
       name: user.name,
       username: user.username,
       email: user.email,
-      image_url: user.image_url,
+      image_url: user.profile_picture.attached? ? url_for(user.profile_picture) : user.image_url,
       relationship: rel ? {
         id: rel.id,
         confirmed: rel.confirmation,
@@ -85,6 +86,20 @@ class UsersController < ApplicationController
     user.relationship&.destroy
     user.destroy
     render json: {message: "User destroyed"}
+  end
+
+  def upload_profile_picture
+    user = User.find(params[:id])
+    unless current_user.id == user.id
+      render json: { error: "Unauthorized" }, status: :unauthorized
+      return
+    end
+    user.profile_picture.attach(params[:profile_picture])
+    if user.profile_picture.attached?
+      render json: { image_url: url_for(user.profile_picture) }
+    else
+      render json: { error: "Upload failed" }, status: :unprocessable_entity
+    end
   end
 
 

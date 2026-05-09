@@ -1,5 +1,9 @@
 class ApplicationController < ActionController::API
 
+  def default_url_options
+    { host: request.base_url }
+  end
+
   def current_user
     auth_headers = request.headers["Authorization"]
     if auth_headers.present? && auth_headers[/(?<=\A(Bearer ))\S+\z/]
