@@ -8,7 +8,10 @@ class Favorite < ApplicationRecord
     response = HTTP.get("https://api.themoviedb.org/3/#{tmdb_type}/#{api_movie_id}?api_key=#{api_key}&append_to_response=videos")
     data = response.parse(:json)
 
-    video_key = data.dig("videos", "results", 0, "key")
+    videos = data.dig("videos", "results") || []
+    youtube = videos.find { |v| v["site"] == "YouTube" && v["type"] == "Trailer" } ||
+              videos.find { |v| v["site"] == "YouTube" }
+    video_key = youtube&.dig("key")
     genre = data.dig("genres", 0, "name")
 
     if tmdb_type == "tv"
