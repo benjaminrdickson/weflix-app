@@ -2,31 +2,37 @@ class LikesController < ApplicationController
 
   before_action :authenticate_user
 
-  def create 
-    partner_like = Like.find_by(user_id: current_user.partner.id, api_movie_id: params[:api_movie_id])
+  def create
+    content_type = params[:content_type].presence || "movie"
+    api_id = params[:api_movie_id]
+
+    partner = current_user.partner
+    partner_like = partner && Like.find_by(user_id: partner.id, api_movie_id: api_id, content_type: content_type)
+
     if partner_like
       favorite = Favorite.new(
         relationship_id: current_user.relationship.id,
-        api_movie_id: params[:api_movie_id]
+        api_movie_id: api_id,
+        content_type: content_type
       )
       if favorite.save
         render json: favorite
       else
-        render json: {errors: favorite.errors.full_messages }, status: :bad_request
-      end 
+        render json: { errors: favorite.errors.full_messages }, status: :bad_request
+      end
     else
       like = Like.new(
-        user_id: current_user.id, 
-        api_movie_id: params[:api_movie_id],
+        user_id: current_user.id,
+        api_movie_id: api_id,
+        content_type: content_type
       )
       if like.save
         render json: like
       else
-        render json: {errors: like.errors.full_messages }, status: :bad_request
-      end 
-    end 
-    
-  end 
+        render json: { errors: like.errors.full_messages }, status: :bad_request
+      end
+    end
+  end
       
 
 
