@@ -31,7 +31,8 @@ class User < ApplicationRecord
   has_one :relationship
   has_one :partner 
 
-  has_many :likes 
+  has_many :likes
+  has_many :passes
   has_many :favorites
 
 

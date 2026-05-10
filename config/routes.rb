@@ -39,9 +39,16 @@ Rails.application.routes.draw do
 
   post "/sessions", controller: "sessions", action: "create"
 
-  # Movies
+  # Movies / Browse
+  get "/movies/random",  controller: "movies", action: "show"
+  get "/browse",         controller: "movies", action: "browse"
+  get "/browse/:id",     controller: "movies", action: "detail"
 
-  get "/movies/random", controller: "movies", action: "show"
+  # Passes
+  post "/passes", controller: "passes", action: "create"
+
+  # Genres
+  get "/genres", controller: "genres", action: "index"
 
 
 
