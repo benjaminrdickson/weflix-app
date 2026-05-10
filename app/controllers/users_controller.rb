@@ -44,7 +44,7 @@ class UsersController < ApplicationController
       name: user.name,
       username: user.username,
       email: user.email,
-      image_url: user.profile_picture.attached? ? url_for(user.profile_picture) : user.image_url,
+      image_url: user.profile_picture.attached? ? user.profile_picture.blob.url : user.image_url,
       relationship: rel ? {
         id: rel.id,
         confirmed: rel.confirmation,
@@ -53,7 +53,7 @@ class UsersController < ApplicationController
           id: user.partner.id,
           name: user.partner.name,
           username: user.partner.username,
-          image_url: user.partner.profile_picture.attached? ? url_for(user.partner.profile_picture) : user.partner.image_url
+          image_url: user.partner.profile_picture.attached? ? user.partner.profile_picture.blob.url : user.partner.image_url
         } : nil
       } : nil
     }
@@ -70,7 +70,6 @@ class UsersController < ApplicationController
       user.name = params[:name] || user.name
       user.email = params[:email] || user.email
       user.username = params[:username] || user.username
-      user.image_url = params[:image_url] || user.image_url
       if user.save
         render json: user
       else 
@@ -96,7 +95,7 @@ class UsersController < ApplicationController
     end
     user.profile_picture.attach(params[:profile_picture])
     if user.profile_picture.attached?
-      render json: { image_url: url_for(user.profile_picture) }
+      render json: { image_url: user.profile_picture.blob.url }
     else
       render json: { error: "Upload failed" }, status: :unprocessable_entity
     end
