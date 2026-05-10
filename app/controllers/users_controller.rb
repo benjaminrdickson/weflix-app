@@ -53,7 +53,7 @@ class UsersController < ApplicationController
           id: user.partner.id,
           name: user.partner.name,
           username: user.partner.username,
-          image_url: user.partner.image_url
+          image_url: user.partner.profile_picture.attached? ? url_for(user.partner.profile_picture) : user.partner.image_url
         } : nil
       } : nil
     }
