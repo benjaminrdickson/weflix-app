@@ -83,6 +83,7 @@ class UsersController < ApplicationController
 
   def destroy
     user = User.find_by(username: params[:username])
+    return render json: { error: "Unauthorized" }, status: :unauthorized unless current_user == user
     user.relationship&.destroy
     user.destroy
     render json: {message: "User destroyed"}
