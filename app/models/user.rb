@@ -10,15 +10,10 @@ class User < ApplicationRecord
     Relationship.find_by("sender_id = ? OR recipient_id = ? ", id, id )
   end 
 
-  def partner 
-    if relationship
-      if relationship.sender_id == id
-        return relationship.recipient
-      else
-        return relationship.sender 
-      end 
-    end 
-    nil
+  def partner
+    rel = relationship
+    return nil unless rel
+    rel.sender_id == id ? rel.recipient : rel.sender
   end
 
   def approved_relationship

@@ -39,6 +39,7 @@ class UsersController < ApplicationController
     return render json: { error: "User not found" }, status: :not_found unless user
 
     rel = user.relationship
+    partner = rel ? user.partner : nil
     render json: {
       id: user.id,
       name: user.name,
@@ -49,11 +50,11 @@ class UsersController < ApplicationController
         id: rel.id,
         confirmed: rel.confirmation,
         is_sender: rel.sender_id == user.id,
-        partner: user.partner ? {
-          id: user.partner.id,
-          name: user.partner.name,
-          username: user.partner.username,
-          image_url: user.partner.profile_picture.attached? ? user.partner.profile_picture.blob.url : user.partner.image_url
+        partner: partner ? {
+          id: partner.id,
+          name: partner.name,
+          username: partner.username,
+          image_url: partner.profile_picture.attached? ? partner.profile_picture.blob.url : partner.image_url
         } : nil
       } : nil
     }
