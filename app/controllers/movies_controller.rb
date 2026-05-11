@@ -69,10 +69,14 @@ class MoviesController < ApplicationController
   end
 
   def excluded_content_ids(types)
+    rel = current_user.relationship
+    favorited = rel ? rel.favorites.pluck(:api_movie_id, :content_type) : []
+
     types.each_with_object({}) do |tmdb_type, hash|
-      liked  = current_user.likes.where(content_type: tmdb_type).pluck(:api_movie_id).to_set
-      passed = current_user.passes.where(content_type: tmdb_type).pluck(:api_movie_id).to_set
-      hash[tmdb_type] = liked | passed
+      liked   = current_user.likes.where(content_type: tmdb_type).pluck(:api_movie_id).to_set
+      passed  = current_user.passes.where(content_type: tmdb_type).pluck(:api_movie_id).to_set
+      fav_ids = favorited.select { |_, ct| ct == tmdb_type }.map(&:first).to_set
+      hash[tmdb_type] = liked | passed | fav_ids
     end
   end
 
