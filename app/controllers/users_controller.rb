@@ -1,6 +1,6 @@
 class UsersController < ApplicationController
 
-  before_action :authenticate_user, except: [:create, :show]
+  before_action :authenticate_user, except: [:create]
   include Rails.application.routes.url_helpers
 
 
@@ -63,20 +63,19 @@ class UsersController < ApplicationController
 
   def update
     user = User.find(params[:id])
-    if current_user.id == user.id
-      if params[:password] && params[:password_confirmation]
-        user.password = params[:password]
-        user.password_confirmation = params[:password_confirmation]
-      end 
-      user.name = params[:name] || user.name
-      user.email = params[:email] || user.email
-      user.username = params[:username] || user.username
-      if user.save
-        render json: user
-      else 
-        render json: {errors: user.errors.full_messages }, status: :unprocessable_entity
-      end 
-    end 
+    return render json: { error: "Unauthorized" }, status: :unauthorized unless current_user.id == user.id
+    if params[:password] && params[:password_confirmation]
+      user.password = params[:password]
+      user.password_confirmation = params[:password_confirmation]
+    end
+    user.name = params[:name] || user.name
+    user.email = params[:email] || user.email
+    user.username = params[:username] || user.username
+    if user.save
+      render json: user
+    else
+      render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
+    end
   end 
 
 
