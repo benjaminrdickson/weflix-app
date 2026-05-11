@@ -16,6 +16,7 @@ class LikesController < ApplicationController
         content_type: content_type
       )
       if favorite.save
+        partner_like.destroy
         render json: favorite
       else
         render json: { errors: favorite.errors.full_messages }, status: :bad_request
