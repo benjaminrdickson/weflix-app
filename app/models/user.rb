@@ -21,7 +21,6 @@ class User < ApplicationRecord
 
   has_many :likes
   has_many :passes
-  has_many :favorites
 
 
 end
