@@ -16,12 +16,8 @@ class User < ApplicationRecord
     rel.sender_id == id ? rel.recipient : rel.sender
   end
 
-  def approved_relationship
-    Relationship.where("sender_id = ? OR recipient_id = ?", id, id).where(confirmed: true)
-  end
 
 
-  
 
   has_many :likes
   has_many :passes

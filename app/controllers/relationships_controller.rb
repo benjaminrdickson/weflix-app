@@ -39,12 +39,12 @@ class RelationshipsController < ApplicationController
    
 
 
-  def destroy 
+  def destroy
     relationship = Relationship.find(params[:id])
-    relationship.destroy 
-    relationship.favorites.destroy
-    render json: {message: "Relationship destroyed"}
-  end 
+    return render json: { error: "Unauthorized" }, status: :unauthorized unless relationship.sender_id == current_user.id || relationship.recipient_id == current_user.id
+    relationship.destroy
+    render json: { message: "Relationship destroyed" }
+  end
 
 
 

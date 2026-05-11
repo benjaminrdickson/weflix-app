@@ -14,6 +14,7 @@ class FavoritesController < ApplicationController
 
   def destroy
     favorite = Favorite.find(params[:id])
+    return render json: { error: "Unauthorized" }, status: :unauthorized unless current_user.relationship&.id == favorite.relationship_id
     favorite.destroy
     render json: { message: "Favorite successfully destroyed" }
   end
