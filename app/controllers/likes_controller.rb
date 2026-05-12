@@ -17,6 +17,14 @@ class LikesController < ApplicationController
       )
       if favorite.save
         partner_like.destroy
+        [current_user, partner].each do |user|
+          NotificationService.deliver(
+            users:   user,
+            type:    "partner_watchlist_match",
+            message: "You and #{user == current_user ? partner.name : current_user.name} matched! Check your Partner watchlist.",
+            context: "partner"
+          )
+        end
         render json: favorite
       else
         render json: { errors: favorite.errors.full_messages }, status: :bad_request

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_05_12_040418) do
+ActiveRecord::Schema.define(version: 2026_05_12_052410) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -113,6 +113,31 @@ ActiveRecord::Schema.define(version: 2026_05_12_040418) do
     t.string "content_type", default: "movie", null: false
   end
 
+  create_table "notification_preferences", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.boolean "friend_requests", default: true, null: false
+    t.boolean "friend_request_accepted", default: true, null: false
+    t.boolean "partner_invitations", default: true, null: false
+    t.boolean "partner_watchlist_matches", default: true, null: false
+    t.boolean "group_invitations", default: true, null: false
+    t.boolean "group_watchlist_matches", default: true, null: false
+    t.boolean "group_join_requests", default: true, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["user_id"], name: "index_notification_preferences_on_user_id", unique: true
+  end
+
+  create_table "notifications", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "notification_type", null: false
+    t.string "message", null: false
+    t.boolean "read", default: false, null: false
+    t.string "context"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["user_id", "read"], name: "index_notifications_on_user_id_and_read"
+  end
+
   create_table "passes", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "api_movie_id", null: false
@@ -120,6 +145,16 @@ ActiveRecord::Schema.define(version: 2026_05_12_040418) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["user_id", "api_movie_id", "content_type"], name: "index_passes_on_user_id_and_api_movie_id_and_content_type", unique: true
+  end
+
+  create_table "push_tokens", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "token", null: false
+    t.string "platform", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["token"], name: "index_push_tokens_on_token", unique: true
+    t.index ["user_id"], name: "index_push_tokens_on_user_id", unique: true
   end
 
   create_table "relationships", force: :cascade do |t|

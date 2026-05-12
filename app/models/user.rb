@@ -27,6 +27,9 @@ class User < ApplicationRecord
   has_many :groups, through: :group_memberships
   has_many :created_groups, class_name: "Group", foreign_key: :creator_id, dependent: :destroy
   has_many :group_likes, dependent: :destroy
+  has_many :notifications, dependent: :destroy
+  has_one  :push_token, dependent: :destroy
+  has_one  :notification_preference, dependent: :destroy
 
 
 end

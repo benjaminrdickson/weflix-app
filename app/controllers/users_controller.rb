@@ -46,6 +46,7 @@ class UsersController < ApplicationController
       username: user.username,
       email: user.email,
       image_url: user.profile_picture.attached? ? user.profile_picture.blob.url : user.image_url,
+      is_group_creator: user.created_groups.any?,
       relationship: rel ? {
         id: rel.id,
         confirmed: rel.confirmation,

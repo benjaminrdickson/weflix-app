@@ -19,6 +19,19 @@ class GroupInvitationsController < ApplicationController
 
     invitation.inviter = current_user
     if invitation.save
+      NotificationService.deliver(
+        users:   invitee,
+        type:    "group_invitation",
+        message: "#{current_user.name} invited you to join #{group.name}"
+      )
+      creator = User.find_by(id: group.creator_id)
+      if creator && creator.id != current_user.id
+        NotificationService.deliver(
+          users:   creator,
+          type:    "group_join_request",
+          message: "#{current_user.name} invited #{invitee.name} to #{group.name} — awaiting your approval"
+        )
+      end
       render json: { invitation_id: invitation.id }, status: :created
     else
       render json: { errors: invitation.errors.full_messages }, status: :unprocessable_entity
@@ -36,7 +49,14 @@ class GroupInvitationsController < ApplicationController
     invitation.status = approved ? "approved" : "rejected"
 
     if invitation.save
-      group.group_memberships.create!(user: invitation.invitee) if approved
+      if approved
+        group.group_memberships.create!(user: invitation.invitee)
+        NotificationService.deliver(
+          users:   invitation.invitee,
+          type:    "group_invitation_approved",
+          message: "Your invitation to #{group.name} was approved — welcome to the group!"
+        )
+      end
       render json: { invitation_id: invitation.id, status: invitation.status }
     else
       render json: { errors: invitation.errors.full_messages }, status: :unprocessable_entity

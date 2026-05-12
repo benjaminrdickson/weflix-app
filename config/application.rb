@@ -37,5 +37,6 @@ module WeflixApp
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
     config.active_storage.service_urls_expire_in = 1.week
+    config.autoload_paths += ["#{root}/app/services"]
   end
 end

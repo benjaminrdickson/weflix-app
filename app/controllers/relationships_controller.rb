@@ -11,6 +11,12 @@ class RelationshipsController < ApplicationController
       recipient_id: params[:recipient_id]
     )
     if relationship.save
+      recipient = User.find_by(id: params[:recipient_id])
+      NotificationService.deliver(
+        users:   recipient,
+        type:    "partner_invitation",
+        message: "#{current_user.name} sent you a partner invitation"
+      ) if recipient
       render json: relationship
     else
       render json: { errors: relationship.errors.full_messages }, status: :unprocessable_entity
@@ -25,6 +31,11 @@ class RelationshipsController < ApplicationController
     if relationship.recipient == current_user
       relationship.confirmation = true
       if relationship.save
+        NotificationService.deliver(
+          users:   relationship.sender,
+          type:    "partner_invitation_approved",
+          message: "#{current_user.name} accepted your partner invitation"
+        )
         render json: relationship
       else
         render json: {errors: relationship.errors.full_messages }, status: :unprocessable_entity

@@ -69,6 +69,19 @@ Rails.application.routes.draw do
   # Genres
   get "/genres", controller: "genres", action: "index"
 
+  # Notifications
+  get    "/notifications",               controller: "notifications", action: "index"
+  patch  "/notifications/mark_all_read", controller: "notifications", action: "mark_all_read"
+  patch  "/notifications/:id",           controller: "notifications", action: "update"
+  delete "/notifications/clear_all",     controller: "notifications", action: "clear_all"
+
+  # Push tokens
+  post "/push_tokens", controller: "push_tokens", action: "upsert"
+
+  # Notification preferences
+  get   "/notification_preferences", controller: "notification_preferences", action: "show"
+  patch "/notification_preferences", controller: "notification_preferences", action: "update"
+
 
 
 

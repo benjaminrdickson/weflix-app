@@ -29,6 +29,11 @@ class FriendshipsController < ApplicationController
 
     friendship = Friendship.new(sender: current_user, recipient: recipient)
     if friendship.save
+      NotificationService.deliver(
+        users:   recipient,
+        type:    "friend_request",
+        message: "#{current_user.name} sent you a friend request"
+      )
       render json: { friendship_id: friendship.id, recipient: user_json(recipient) }, status: :created
     else
       render json: { errors: friendship.errors.full_messages }, status: :unprocessable_entity
@@ -40,6 +45,11 @@ class FriendshipsController < ApplicationController
     return render json: { error: "Unauthorized" }, status: :unauthorized unless friendship.recipient == current_user
     friendship.confirmed = true
     if friendship.save
+      NotificationService.deliver(
+        users:   friendship.sender,
+        type:    "friend_request_accepted",
+        message: "#{current_user.name} accepted your friend request"
+      )
       render json: { friendship_id: friendship.id, sender: user_json(friendship.sender) }
     else
       render json: { errors: friendship.errors.full_messages }, status: :unprocessable_entity

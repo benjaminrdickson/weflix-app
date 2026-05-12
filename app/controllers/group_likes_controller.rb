@@ -31,10 +31,20 @@ class GroupLikesController < ApplicationController
     likes_count  = GroupLike.where(group_id: group.id, api_movie_id: api_id, content_type: content_type).count
     return unless likes_count.to_f / member_count > 0.5
 
-    GroupWatchlistItem.find_or_create_by(
+    item, created = GroupWatchlistItem.find_or_create_by(
       group_id:     group.id,
       api_movie_id: api_id,
       content_type: content_type
-    )
+    ).then { |i| [i, i.previously_new_record?] }
+
+    if created
+      members = group.members
+      NotificationService.deliver(
+        users:   members,
+        type:    "group_watchlist_match",
+        message: "A new title was added to #{group.name}!",
+        context: "group_#{group.id}"
+      )
+    end
   end
 end
