@@ -21,6 +21,8 @@ class User < ApplicationRecord
 
   has_many :likes
   has_many :passes
+  has_many :sent_friendships, class_name: "Friendship", foreign_key: :sender_id, dependent: :destroy
+  has_many :received_friendships, class_name: "Friendship", foreign_key: :recipient_id, dependent: :destroy
 
 
 end

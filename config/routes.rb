@@ -15,7 +15,14 @@ Rails.application.routes.draw do
 
   delete "/favorites/:id", controller: "favorites", action: "destroy"
 
-  # Like routes 
+  # Friendship routes
+
+  get    "/friendships",     controller: "friendships", action: "index"
+  post   "/friendships",     controller: "friendships", action: "create"
+  patch  "/friendships/:id", controller: "friendships", action: "update"
+  delete "/friendships/:id", controller: "friendships", action: "destroy"
+
+  # Like routes
 
   post "/likes", controller: "likes", action: "create"
 
