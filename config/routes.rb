@@ -22,6 +22,18 @@ Rails.application.routes.draw do
   patch  "/friendships/:id", controller: "friendships", action: "update"
   delete "/friendships/:id", controller: "friendships", action: "destroy"
 
+  # Group routes
+
+  get    "/groups",                                              controller: "groups",                   action: "index"
+  post   "/groups",                                              controller: "groups",                   action: "create"
+  get    "/groups/:id",                                          controller: "groups",                   action: "show"
+  patch  "/groups/:id",                                          controller: "groups",                   action: "update"
+  delete "/groups/:id",                                          controller: "groups",                   action: "destroy"
+  post   "/groups/:group_id/invitations",                        controller: "group_invitations",         action: "create"
+  patch  "/groups/:group_id/invitations/:invitation_id",         controller: "group_invitations",         action: "update"
+  post   "/groups/:group_id/likes",                              controller: "group_likes",               action: "create"
+  delete "/groups/:group_id/watchlist/:id",                      controller: "group_watchlist_items",     action: "destroy"
+
   # Like routes
 
   post "/likes", controller: "likes", action: "create"

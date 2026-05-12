@@ -34,7 +34,8 @@ class MoviesController < ApplicationController
     raw_type  = params[:content_type].presence || "movie"
     types     = raw_type == "both" ? ["movie", "tv"] : [raw_type == "tv" ? "tv" : "movie"]
 
-    excluded_ids = excluded_content_ids(types)
+    context      = params[:context].presence || "partner"
+    excluded_ids = excluded_content_ids(types, context)
 
     results = types.flat_map do |tmdb_type|
       fetch_tmdb_page(api_key, tmdb_type, page, query, genre_id)
@@ -68,15 +69,22 @@ class MoviesController < ApplicationController
     HTTP.get(url).parse(:json)["results"] || []
   end
 
-  def excluded_content_ids(types)
-    rel = current_user.relationship
-    favorited = rel ? rel.favorites.pluck(:api_movie_id, :content_type) : []
-
+  def excluded_content_ids(types, context = "partner")
     types.each_with_object({}) do |tmdb_type, hash|
-      liked   = current_user.likes.where(content_type: tmdb_type).pluck(:api_movie_id).to_set
-      passed  = current_user.passes.where(content_type: tmdb_type).pluck(:api_movie_id).to_set
-      fav_ids = favorited.select { |_, ct| ct == tmdb_type }.map(&:first).to_set
-      hash[tmdb_type] = liked | passed | fav_ids
+      passed = current_user.passes.where(content_type: tmdb_type).pluck(:api_movie_id).to_set
+
+      context_ids = if context == "partner"
+        rel       = current_user.relationship
+        favorited = rel ? rel.favorites.where(content_type: tmdb_type).pluck(:api_movie_id).to_set : Set.new
+        liked     = current_user.likes.where(content_type: tmdb_type).pluck(:api_movie_id).to_set
+        liked | favorited
+      else
+        group_id = context.to_i
+        GroupLike.where(group_id: group_id, user_id: current_user.id, content_type: tmdb_type)
+                 .pluck(:api_movie_id).to_set
+      end
+
+      hash[tmdb_type] = passed | context_ids
     end
   end
 

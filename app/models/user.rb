@@ -23,6 +23,10 @@ class User < ApplicationRecord
   has_many :passes
   has_many :sent_friendships, class_name: "Friendship", foreign_key: :sender_id, dependent: :destroy
   has_many :received_friendships, class_name: "Friendship", foreign_key: :recipient_id, dependent: :destroy
+  has_many :group_memberships, dependent: :destroy
+  has_many :groups, through: :group_memberships
+  has_many :created_groups, class_name: "Group", foreign_key: :creator_id, dependent: :destroy
+  has_many :group_likes, dependent: :destroy
 
 
 end
