@@ -15,8 +15,9 @@ class GroupInvitationsController < ApplicationController
     return render json: { error: "User is already a member" }, status: :unprocessable_entity if group.members.exists?(id: invitee.id)
 
     invitation = group.group_invitations.find_or_initialize_by(invitee: invitee)
-    return render json: { error: "Invitation already sent" }, status: :unprocessable_entity if invitation.persisted?
+    return render json: { error: "Invitation already sent" }, status: :unprocessable_entity if invitation.persisted? && invitation.status == "pending"
 
+    invitation.status = "pending"
     invitation.inviter = current_user
     if invitation.save
       NotificationService.deliver(
