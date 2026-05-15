@@ -25,7 +25,7 @@ class GroupsController < ApplicationController
     watchlist = group.group_watchlist_items.map { |item| item.tmdb_details(region).merge(watchlist_item_id: item.id) }
 
     pending_invitations = group.creator_id == current_user.id ?
-      group.group_invitations.where(status: "pending").includes(:invitee) : []
+      group.group_invitations.where(status: %w[pending accepted]).includes(:invitee) : []
 
     render json: {
       id:                  group.id,
@@ -34,7 +34,7 @@ class GroupsController < ApplicationController
       is_creator:          group.creator_id == current_user.id,
       members:             members.map { |m| user_json(m) },
       pending_invitations: pending_invitations.map { |inv|
-        { invitation_id: inv.id, invitee: user_json(inv.invitee) }
+        { invitation_id: inv.id, invitee: user_json(inv.invitee), status: inv.status }
       },
       watchlist:           watchlist
     }
