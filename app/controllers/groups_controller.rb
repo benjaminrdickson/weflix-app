@@ -21,7 +21,7 @@ class GroupsController < ApplicationController
     return unless group
 
     region = params[:region].presence || "US"
-    members = group.members.includes(:active_storage_attachments)
+    members = group.members.includes(profile_picture_attachment: :blob)
     watchlist = group.group_watchlist_items.map { |item| item.tmdb_details(region).merge(watchlist_item_id: item.id) }
 
     pending_invitations = group.creator_id == current_user.id ?
