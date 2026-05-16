@@ -57,6 +57,15 @@ class GroupsController < ApplicationController
     render json: { message: "Group deleted" }
   end
 
+  def leave
+    group = find_member_group
+    return unless group
+    return render json: { error: "Creator cannot leave — delete the group instead" }, status: :unprocessable_entity if group.creator_id == current_user.id
+
+    group.group_memberships.find_by(user: current_user)&.destroy
+    render json: { message: "Left group" }
+  end
+
   private
 
   def find_member_group

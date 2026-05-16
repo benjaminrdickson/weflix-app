@@ -29,6 +29,7 @@ Rails.application.routes.draw do
   get    "/groups/:id",                                          controller: "groups",                   action: "show"
   patch  "/groups/:id",                                          controller: "groups",                   action: "update"
   delete "/groups/:id",                                          controller: "groups",                   action: "destroy"
+  delete "/groups/:id/leave",                                    controller: "groups",                   action: "leave"
   post   "/groups/:group_id/invitations",                        controller: "group_invitations",         action: "create"
   patch  "/groups/:group_id/invitations/:invitation_id",         controller: "group_invitations",         action: "update"
   post   "/groups/:group_id/likes",                              controller: "group_likes",               action: "create"
