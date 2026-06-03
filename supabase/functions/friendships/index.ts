@@ -130,6 +130,7 @@ async function handleCreate(userId: string, req: Request): Promise<Response> {
     userIds: [recipient.id],
     type:    'friend_request',
     message: `${sender?.name ?? 'Someone'} sent you a friend request`,
+    context: JSON.stringify({ friendship_id: friendship.id }),
   });
 
   return json({ friendship_id: friendship.id, recipient: userJson(recipient) }, 201);
