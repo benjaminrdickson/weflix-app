@@ -18,6 +18,10 @@ Deno.serve(async (req) => {
   try {
     const url = new URL(req.url);
 
+    if (url.pathname.endsWith('/browse/providers')) {
+      return await handleProviders(url.searchParams);
+    }
+
     // Detect /browse/:id — path ends with a numeric segment after "browse"
     const idMatch = url.pathname.match(/\/browse\/(\d+)/);
     if (idMatch) {
@@ -37,6 +41,28 @@ async function handleDetail(id: number, params: URLSearchParams): Promise<Respon
   const type = params.get('content_type') === 'tv' ? 'tv' : 'movie';
   const data = await fetchRawDetail(id, type);
   return json(data);
+}
+
+// Returns logo_path for each of the 11 known platform IDs, keyed by provider_id.
+// Fetches both movie and tv provider lists so all platforms are covered.
+async function handleProviders(params: URLSearchParams): Promise<Response> {
+  const region = params.get('region') || 'US';
+  const PLATFORM_IDS = new Set([8, 9, 337, 384, 15, 350, 386, 531, 37, 73, 283]);
+
+  const [movieRes, tvRes] = await Promise.all([
+    fetch(`${TMDB_BASE}/watch/providers/movie?api_key=${tmdbKey()}&watch_region=${region}&language=en-US`),
+    fetch(`${TMDB_BASE}/watch/providers/tv?api_key=${tmdbKey()}&watch_region=${region}&language=en-US`),
+  ]);
+  const [movieData, tvData] = await Promise.all([movieRes.json(), tvRes.json()]);
+
+  const logoMap: Record<number, string> = {};
+  for (const p of [...(movieData.results || []), ...(tvData.results || [])]) {
+    if (PLATFORM_IDS.has(p.provider_id) && !logoMap[p.provider_id]) {
+      logoMap[p.provider_id] = p.logo_path;
+    }
+  }
+
+  return json(logoMap);
 }
 
 // Replicates MoviesController#browse exactly.
