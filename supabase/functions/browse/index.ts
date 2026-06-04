@@ -47,7 +47,7 @@ async function handleDetail(id: number, params: URLSearchParams): Promise<Respon
 // Fetches both movie and tv provider lists so all platforms are covered.
 async function handleProviders(params: URLSearchParams): Promise<Response> {
   const region = params.get('region') || 'US';
-  const PLATFORM_IDS = new Set([8, 9, 337, 384, 15, 350, 386, 531, 37, 73, 283]);
+  const PLATFORM_IDS = new Set([8, 9, 337, 1899, 15, 350, 386, 531, 37, 73, 283]);
 
   const [movieRes, tvRes] = await Promise.all([
     fetch(`${TMDB_BASE}/watch/providers/movie?api_key=${tmdbKey()}&watch_region=${region}&language=en-US`),
