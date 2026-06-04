@@ -39,8 +39,26 @@ Deno.serve(async (req) => {
 // DetailModal.js reads detail?.videos?.results client-side to find the trailer key.
 async function handleDetail(id: number, params: URLSearchParams): Promise<Response> {
   const type = params.get('content_type') === 'tv' ? 'tv' : 'movie';
+  const region = params.get('region') || 'US';
   const data = await fetchRawDetail(id, type);
-  return json(data);
+
+  const regionData = data?.['watch/providers']?.results?.[region] ?? {};
+  const watch_providers = {
+    flatrate: normalizeProviders(regionData.flatrate),
+    rent:     normalizeProviders(regionData.rent),
+    buy:      normalizeProviders(regionData.buy),
+  };
+
+  return json({ ...data, watch_providers });
+}
+
+function normalizeProviders(providers: any[] | null | undefined) {
+  if (!providers) return [];
+  return providers.map(p => ({
+    provider_id:   p.provider_id,
+    provider_name: p.provider_name,
+    logo_path:     p.logo_path,
+  }));
 }
 
 // Returns logo_path for each of the 11 known platform IDs, keyed by provider_id.

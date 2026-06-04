@@ -9,7 +9,7 @@ function apiKey(): string {
 // The full videos object (including results array) is preserved so DetailModal.js
 // can find the trailer key client-side.
 export async function fetchRawDetail(id: number, type: 'movie' | 'tv') {
-  const url = `${TMDB_BASE}/${type}/${id}?api_key=${apiKey()}&append_to_response=videos,genres`;
+  const url = `${TMDB_BASE}/${type}/${id}?api_key=${apiKey()}&append_to_response=videos,genres,watch/providers`;
   const res = await fetch(url);
   const data = await res.json();
 
