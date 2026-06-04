@@ -47,7 +47,7 @@ async function handleDetail(id: number, params: URLSearchParams): Promise<Respon
 // Fetches both movie and tv provider lists so all platforms are covered.
 async function handleProviders(params: URLSearchParams): Promise<Response> {
   const region = params.get('region') || 'US';
-  const PLATFORM_IDS = new Set([8, 9, 337, 1899, 15, 350, 386, 531, 37, 73, 283]);
+  const PLATFORM_IDS = new Set([8, 9, 337, 1899, 15, 350, 386, 531, 73, 283]);
 
   const [movieRes, tvRes] = await Promise.all([
     fetch(`${TMDB_BASE}/watch/providers/movie?api_key=${tmdbKey()}&watch_region=${region}&language=en-US`),
@@ -55,7 +55,9 @@ async function handleProviders(params: URLSearchParams): Promise<Response> {
   ]);
   const [movieData, tvData] = await Promise.all([movieRes.json(), tvRes.json()]);
 
-  const logoMap: Record<number, string> = {};
+  const logoMap: Record<number, string> = {
+    531: '/h5DcR0J2EESLitnhR8xLG1QymTE.jpg', // Paramount+
+  };
   for (const p of [...(movieData.results || []), ...(tvData.results || [])]) {
     if (PLATFORM_IDS.has(p.provider_id) && !logoMap[p.provider_id]) {
       logoMap[p.provider_id] = p.logo_path;
