@@ -41,11 +41,13 @@ async function handleDetail(id: number, params: URLSearchParams): Promise<Respon
 
 // Replicates MoviesController#browse exactly.
 async function handleBrowse(userId: string, params: URLSearchParams): Promise<Response> {
-  const rawType  = params.get('content_type') || 'movie';
-  const page     = Math.min(Math.max(parseInt(params.get('page') || '1', 10), 1), 500);
-  const query    = params.get('query')?.trim() || '';
-  const genreId  = params.get('genre_id') || null;
-  const context  = params.get('context') || 'partner';
+  const rawType         = params.get('content_type') || 'movie';
+  const page            = Math.min(Math.max(parseInt(params.get('page') || '1', 10), 1), 500);
+  const query           = params.get('query')?.trim() || '';
+  const genreId         = params.get('genre_id') || null;
+  const context         = params.get('context') || 'partner';
+  const region          = params.get('region') || 'US';
+  const watchProviderId = query ? null : (params.get('watch_provider_id') || null);
 
   const types: Array<'movie' | 'tv'> =
     rawType === 'both' ? ['movie', 'tv'] : [rawType === 'tv' ? 'tv' : 'movie'];
@@ -54,7 +56,7 @@ async function handleBrowse(userId: string, params: URLSearchParams): Promise<Re
 
   const pages = await Promise.all(
     types.map((tmdbType) =>
-      fetchTmdbPage(tmdbType, page, query, genreId).then((items) =>
+      fetchTmdbPage(tmdbType, page, query, genreId, watchProviderId, region).then((items) =>
         items
           .filter((item: any) => !excludedIds[tmdbType].has(item.id))
           .map((item: any) => normalizeBrowseItem(item, tmdbType))
@@ -138,6 +140,8 @@ async function fetchTmdbPage(
   page: number,
   query: string,
   genreId: string | null,
+  watchProviderId: string | null,
+  region: string,
 ): Promise<any[]> {
   let url: string;
   if (query) {
@@ -145,6 +149,7 @@ async function fetchTmdbPage(
   } else {
     url = `${TMDB_BASE}/discover/${type}?api_key=${tmdbKey()}&language=en-US&sort_by=popularity.desc&include_adult=false&page=${page}`;
     if (genreId) url += `&with_genres=${genreId}`;
+    if (watchProviderId) url += `&with_watch_providers=${watchProviderId}&watch_region=${region}`;
   }
   const res = await fetch(url);
   const data = await res.json();
