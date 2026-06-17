@@ -1,6 +1,7 @@
 import { corsHeaders } from '../_shared/cors.ts';
 import { getUser, getAdminClient } from '../_shared/auth.ts';
 import { fetchProcessedDetail } from '../_shared/tmdb.ts';
+import { deliver } from '../_shared/notifications.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -103,8 +104,8 @@ async function handleShow(userId: string, groupId: number, params: URLSearchPara
 
   if (!group) return json({ error: 'Not found' }, 404);
 
-  // Fetch members, watchlist items, and (for creator) pending invitations in parallel
-  const [membersResult, watchlistResult, invitationsResult] = await Promise.all([
+  // Fetch members, watchlist items, pending invitations, and pending ownership invite in parallel
+  const [membersResult, watchlistResult, invitationsResult, ownershipInviteResult] = await Promise.all([
     supabase
       .from('group_memberships')
       .select('users!group_memberships_user_id_fkey(id, name, username, image_url)')
@@ -120,9 +121,18 @@ async function handleShow(userId: string, groupId: number, params: URLSearchPara
           .eq('group_id', groupId)
           .in('status', ['pending', 'accepted'])
       : Promise.resolve({ data: [] }),
+    group.creator_id === userId
+      ? supabase
+          .from('group_ownership_invites')
+          .select('id, users!group_ownership_invites_invitee_id_fkey(id, name, username, image_url)')
+          .eq('group_id', groupId)
+          .eq('status', 'pending')
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
 
   const members = (membersResult.data || []).map((m: any) => userJson(m.users));
+  const ownershipInvite = ownershipInviteResult.data;
 
   // Enrich watchlist items with TMDB data in parallel
   const watchlist = await Promise.all(
@@ -147,6 +157,10 @@ async function handleShow(userId: string, groupId: number, params: URLSearchPara
     members,
     pending_invitations: pendingInvitations,
     watchlist,
+    pending_ownership_invite: ownershipInvite ? {
+      invite_id: ownershipInvite.id,
+      invitee:   userJson((ownershipInvite as any).users),
+    } : null,
   });
 }
 
@@ -209,12 +223,40 @@ async function handleLeave(userId: string, groupId: number): Promise<Response> {
 
   const { data: group } = await supabase
     .from('groups')
-    .select('creator_id')
+    .select('creator_id, name')
     .eq('id', groupId)
     .maybeSingle();
 
   if (group?.creator_id === userId) {
     return json({ error: 'Creator cannot leave — delete the group instead' }, 422);
+  }
+
+  // If this user has a pending ownership invite for this group, cancel it and notify the creator.
+  const { data: ownershipInvite } = await supabase
+    .from('group_ownership_invites')
+    .select('id, inviter_id')
+    .eq('group_id', groupId)
+    .eq('invitee_id', userId)
+    .eq('status', 'pending')
+    .maybeSingle();
+
+  if (ownershipInvite) {
+    await supabase
+      .from('group_ownership_invites')
+      .update({ status: 'cancelled' })
+      .eq('id', ownershipInvite.id);
+
+    const { data: leavingUser } = await supabase
+      .from('users')
+      .select('name')
+      .eq('id', userId)
+      .maybeSingle();
+
+    await deliver({
+      userIds: [ownershipInvite.inviter_id],
+      type:    'group_ownership_invite_cancelled',
+      message: `${leavingUser?.name ?? 'Someone'} left "${group?.name ?? 'the group'}" — your ownership transfer invite has been cancelled`,
+    });
   }
 
   await supabase.from('group_memberships').delete().eq('id', membership.id);
