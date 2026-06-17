@@ -28,3 +28,5 @@
 
 # Ignore local environment variables.
 .env
+.DS_Store
+*.dump
