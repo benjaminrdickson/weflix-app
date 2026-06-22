@@ -36,7 +36,7 @@ async function handleShow(username: string): Promise<Response> {
 
   const { data: user } = await supabase
     .from('users')
-    .select('id, name, username, email, image_url')
+    .select('id, name, username, image_url')
     .ilike('username', username)
     .maybeSingle();
 
@@ -71,7 +71,6 @@ async function handleShow(username: string): Promise<Response> {
     id:               user.id,
     name:             user.name,
     username:         user.username,
-    email:            user.email,
     image_url:        user.image_url ?? null,
     is_group_creator: (groupCount ?? 0) > 0,
     relationship: rel ? {
