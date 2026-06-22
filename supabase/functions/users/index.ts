@@ -37,7 +37,7 @@ async function handleShow(username: string): Promise<Response> {
   const { data: user } = await supabase
     .from('users')
     .select('id, name, username, email, image_url')
-    .eq('username', username)
+    .ilike('username', username)
     .maybeSingle();
 
   if (!user) return json({ error: 'User not found' }, 404);

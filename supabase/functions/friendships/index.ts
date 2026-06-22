@@ -83,7 +83,7 @@ async function handleCreate(userId: string, req: Request): Promise<Response> {
   const { data: recipient } = await supabase
     .from('users')
     .select('id, name, username, image_url')
-    .eq('username', username)
+    .ilike('username', username)
     .maybeSingle();
 
   if (!recipient) return json({ error: 'User not found' }, 404);
