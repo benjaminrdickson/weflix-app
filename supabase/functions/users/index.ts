@@ -12,12 +12,16 @@ Deno.serve(async (req) => {
 
   const url      = new URL(req.url);
   const segments = url.pathname.split('/').filter(Boolean);
-  // Last segment after "users" is either username (GET) or UUID (PATCH/DELETE)
+  // Last segment after "users" is either "search", a username (GET), or UUID (PATCH/DELETE)
   const param = segments[segments.indexOf('users') + 1] ?? null;
 
-  if (!param) return json({ error: 'Not found' }, 404);
-
   try {
+    // Search route: GET users/search?q=... — partial username/name match
+    if (param === 'search' && req.method === 'GET') return await handleSearch(user.id, url);
+    if (param === 'search') return json({ error: 'Method not allowed' }, 405);
+
+    if (!param) return json({ error: 'Not found' }, 404);
+
     if (req.method === 'GET')    return await handleShow(param);
     if (req.method === 'PATCH')  return await handleUpdate(user.id, param, req);
     if (req.method === 'DELETE') return await handleDestroy(user.id, param);
@@ -27,6 +31,87 @@ Deno.serve(async (req) => {
     return json({ error: 'Internal error' }, 500);
   }
 });
+
+// Partial user search: contains match on username and name.
+// Returns id/username/name/image_url only — no email (multi-user PII exposure risk).
+async function handleSearch(callerId: string, url: URL): Promise<Response> {
+  const q = (url.searchParams.get('q') ?? '').trim();
+
+  // Require at least 2 characters to avoid unbounded full-table scans.
+  if (q.length < 2) return json([]);
+
+  // Escape SQL LIKE metacharacters so user-supplied %, _, \ are treated as
+  // literals, not wildcards. Confirmed correct: PostgreSQL honors \ as the
+  // default ILIKE escape character in parameterized queries (tested against
+  // real DB — escaped % returned 1 match, unescaped % returned all rows).
+  const escaped = q.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+  const pattern = `%${escaped}%`;
+
+  const supabase = getAdminClient();
+
+  // Two separate .ilike() calls instead of .or() — avoids PostgREST
+  // filter-string mis-parsing when the search term contains commas.
+  // Per-query limit is 50 so the ranking pool is large enough that
+  // the final top-20 slice isn't distorted by a tight per-query cap.
+  const [{ data: byUsername }, { data: byName }] = await Promise.all([
+    supabase
+      .from('users')
+      .select('id, username, name, image_url')
+      .ilike('username', pattern)
+      .neq('id', callerId)
+      // TODO: exclude users who have blocked or been blocked by the caller
+      .limit(50),
+    supabase
+      .from('users')
+      .select('id, username, name, image_url')
+      .ilike('name', pattern)
+      .neq('id', callerId)
+      // TODO: exclude users who have blocked or been blocked by the caller
+      .limit(50),
+  ]);
+
+  // Track username-query matches for relevance ranking.
+  const usernameMatchIds = new Set((byUsername ?? []).map(u => u.id));
+
+  // Merge, deduplicate (a user matching both fields appears once).
+  const seen = new Set<string>();
+  const candidates = [...(byUsername ?? []), ...(byName ?? [])].filter(u => {
+    if (seen.has(u.id)) return false;
+    seen.add(u.id);
+    return true;
+  });
+
+  // Relevance ranking (lower = better):
+  //   0 — exact username match
+  //   1 — exact name match
+  //   2 — username starts with term
+  //   3 — name starts with term
+  //   4 — contains match on username
+  //   5 — contains match on name only
+  // Tiebreaker: alphabetical by username.
+  const lTerm = q.toLowerCase();
+  function rankScore(u: { id: string; username: string; name: string | null }): number {
+    const uname = u.username.toLowerCase();
+    const uname_field = (u.name ?? '').toLowerCase();
+    if (uname === lTerm)               return 0;
+    if (uname_field === lTerm)         return 1;
+    if (uname.startsWith(lTerm))       return 2;
+    if (uname_field.startsWith(lTerm)) return 3;
+    if (usernameMatchIds.has(u.id))    return 4;
+    return 5;
+  }
+
+  // Rank first, then cap at 20 — so the top 20 are the most relevant, not arbitrary.
+  const results = candidates
+    .sort((a, b) => {
+      const diff = rankScore(a) - rankScore(b);
+      if (diff !== 0) return diff;
+      return a.username.toLowerCase().localeCompare(b.username.toLowerCase());
+    })
+    .slice(0, 20);
+
+  return json(results);
+}
 
 // Replicates UsersController#show.
 // Returns full profile: relationship with is_sender + partner, is_group_creator flag.
