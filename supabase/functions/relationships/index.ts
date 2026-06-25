@@ -33,7 +33,27 @@ async function handleCreate(userId: string, req: Request): Promise<Response> {
 
   if (!recipientId) return json({ error: 'recipient_id required' }, 400);
 
+  // Validate recipientId is a UUID before using it in filter construction.
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!UUID_RE.test(recipientId)) return json({ error: 'Invalid recipient_id' }, 400);
+
   const supabase = getAdminClient();
+
+  // Pre-flight: block if either party is already in a relationship.
+  // The DB trigger is the hard guarantee; this produces a friendly 422 for the normal case.
+  const { data: conflict } = await supabase
+    .from('relationships')
+    .select('id')
+    .or(
+      `sender_id.eq.${userId},recipient_id.eq.${userId},` +
+      `sender_id.eq.${recipientId},recipient_id.eq.${recipientId}`
+    )
+    .limit(1)
+    .maybeSingle();
+
+  if (conflict) {
+    return json({ error: 'One of you is already in a relationship' }, 422);
+  }
 
   const { data: relationship, error } = await supabase
     .from('relationships')
