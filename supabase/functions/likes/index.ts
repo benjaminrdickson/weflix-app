@@ -9,6 +9,17 @@ Deno.serve(async (req) => {
 
   const user = await getUser(req);
   if (!user) return json({ error: 'Unauthorized' }, 401);
+
+  if (req.method === 'GET') {
+    const supabase = getAdminClient();
+    const { count, error } = await supabase
+      .from('likes')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id);
+    if (error) return json({ error: 'Could not fetch count' }, 500);
+    return json({ count: count ?? 0 });
+  }
+
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
 
   try {
